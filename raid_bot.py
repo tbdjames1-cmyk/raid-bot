@@ -1,21 +1,29 @@
 import discord
 from discord.ext import commands
+from dotenv import load_dotenv
 import asyncio
+import os
+
+load_dotenv()
+TOKEN = os.getenv("TOKEN")
 
 intents = discord.Intents.default()
 intents.members = True
 intents.message_content = True
 
-bot = commands.Bot(command_prefix='!', intents=intents)
+bot = commands.Bot(command_prefix="!", intents=intents)
 
 @bot.event
 async def on_ready():
-    print(f'Logged in as {bot.user}')
+    print("=" * 50)
+    print(f"Logged in as {bot.user}")
+    print(f"Bot ID: {bot.user.id}")
+    print("=" * 50)
 
-# DM all members
 @bot.command()
-
 async def dmall(ctx, *, message):
+    print(f"\nStarting DM All in {ctx.guild.name}")
+
     sent = 0
     failed = 0
 
@@ -24,32 +32,36 @@ async def dmall(ctx, *, message):
             try:
                 await member.send(message)
                 sent += 1
-                print(f'Sent message to {member.name}')
-                await asyncio.sleep(2)  # 2-second delay
+                print(f"[SUCCESS] Sent DM to {member}")
+
+                await asyncio.sleep(2)
+
             except Exception as e:
                 failed += 1
-                print(f'Could not send message to {member.name}: {e}')
+                print(f"[FAILED] {member} - {e}")
 
-    await ctx.send(
-        f'Finished sending DMs.\n✅ Sent: {sent}\n❌ Failed: {failed}'
-    )
+    print("\nDM ALL COMPLETE")
+    print(f"Sent: {sent}")
+    print(f"Failed: {failed}")
 
-# Send message to all text channels
 @bot.command()
-
 async def channels(ctx, *, message):
+    print(f"\nStarting channel broadcast in {ctx.guild.name}")
+
     sent = 0
 
     for channel in ctx.guild.text_channels:
         try:
             await channel.send(message)
             sent += 1
-            await asyncio.sleep(1)  # Optional delay
-        except discord.Forbidden:
-            pass
+            print(f"[SUCCESS] Sent to #{channel.name}")
+
+            await asyncio.sleep(1)
+
         except Exception as e:
-            print(f'Could not send to {channel.name}: {e}')
+            print(f"[FAILED] #{channel.name} - {e}")
 
-    await ctx.send(f'✅ Message sent to {sent} channels.')
+    print("\nCHANNEL BROADCAST COMPLETE")
+    print(f"Messages sent to {sent} channels")
 
-bot.run('YOUR_BOT_TOKEN')
+bot.run(TOKEN)
